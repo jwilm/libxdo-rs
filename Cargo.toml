@@ -1,0 +1,13 @@
+[package]
+name = "jwilm-xdo"
+version = "0.1.0"
+authors = ["Joe Wilm <joe@jwilm.com>"]
+license = "MIT OR Apache-2.0"
+description = "Rust bindings for a few libxdo methods"
+documentation = "https://docs.rs/jwilm-libxdo"
+repository = "https://github.com/jwilm/libxdo-rs"
+
+[dependencies]
+libxdo-sys = { version = "0.10", git = "https://github.com/jwilm/rust-libxdo-sys" }
+x11 = { version = "2.1.0", features = ["xlib"] }
+libc = "0.2.20"

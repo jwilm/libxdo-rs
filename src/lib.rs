@@ -2,25 +2,32 @@
 extern crate libxdo_sys as ffi;
 extern crate libc;
 extern crate x11;
+#[macro_use]
+extern crate foreign_types;
 
-use std::ptr;
 use std::ffi::{CStr, CString};
+use std::ptr;
 use std::time::Duration;
 
-use x11::xlib::XFree;
+use foreign_types::ForeignTypeRef;
 use libc::c_int;
 use libc::useconds_t;
-
-#[macro_use]
-mod ffi_util;
-
-use ffi_util::ForeignTypeRef;
+use x11::xlib::XFree;
 
 const XDO_SUCCESS: c_int = 0;
 const XDO_ERROR: c_int = 1;
 
 /// Handle for the `xdo` API
-ffi_type!(Xdo, XdoRef, ffi::xdo_t, ffi::xdo_free);
+foreign_type! {
+    type CType = ffi::xdo_t;
+    fn drop = ffi::xdo_free;
+
+    /// Wraps an instance of the `xdo` library
+    pub struct Xdo;
+
+    /// Borrowed version of `Xdo`
+    pub struct XdoRef;
+}
 
 #[derive(Debug)]
 pub enum Error {

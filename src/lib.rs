@@ -193,6 +193,11 @@ impl<'a> Window<'a> {
         }
     }
 
+    /// Get the Window ID as a usize
+    pub fn get_id(&self) -> usize {
+        self.id as usize
+    }
+
     /// Send a keysequence to the specified window
     ///
     /// The delay is convereted to microseconds internally before forwarding to libxdo. If the delay

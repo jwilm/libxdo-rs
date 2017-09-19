@@ -63,6 +63,15 @@ pub struct Window<'a> {
     xdo: &'a XdoRef,
 }
 
+use std::fmt;
+impl<'a> fmt::Debug for Window<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("Window")
+            .field("id", &self.id)
+            .finish()
+    }
+}
+
 impl ::std::error::Error for Error {
     fn cause(&self) -> Option<&::std::error::Error> {
         match *self {

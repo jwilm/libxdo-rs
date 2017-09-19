@@ -17,6 +17,21 @@ use x11::xlib::XFree;
 const XDO_SUCCESS: c_int = 0;
 const XDO_ERROR: c_int = 1;
 
+pub struct CharcodeMapList {
+    ptr: *mut ffi::Struct_charcodemap,
+    len: c_int,
+}
+
+impl Drop for CharcodeMapList {
+    fn drop(&mut self) {
+        if self.ptr != ptr::null_mut() {
+            unsafe {
+                ::libc::free(self.ptr as *mut _);
+            }
+        }
+    }
+}
+
 /// Handle for the `xdo` API
 foreign_type! {
     type CType = ffi::xdo_t;
@@ -116,6 +131,23 @@ impl XdoRef {
             _ => unreachable!()
         }
     }
+
+    pub fn get_active_modifiers(&self) -> Result<CharcodeMapList> {
+        let mut list = CharcodeMapList {
+            ptr: ptr::null_mut(),
+            len: 0,
+        };
+
+        let res = unsafe {
+            ffi::xdo_get_active_modifiers(self.as_ptr(), &mut list.ptr, &mut list.len)
+        };
+
+        match res {
+            XDO_SUCCESS => Ok(list),
+            XDO_ERROR => Err(Error::Failed("get_active_modifiers")),
+            _ => unreachable!()
+        }
+    }
 }
 
 impl<'a> Window<'a> {
@@ -173,6 +205,30 @@ impl<'a> Window<'a> {
             _ => unreachable!(),
         }
     }
+
+    pub fn set_active_modifiers(&self, mods: &CharcodeMapList) -> Result<()> {
+        let res = unsafe {
+            ffi::xdo_set_active_modifiers(self.xdo.as_ptr(), self.id, mods.ptr, mods.len)
+        };
+
+        match res {
+            XDO_SUCCESS => Ok(()),
+            XDO_ERROR => Err(Error::Failed("set_active_modifiers")),
+            _ => unreachable!()
+        }
+    }
+
+    pub fn clear_active_modifiers(&self, mods: &CharcodeMapList) -> Result<()> {
+        let res = unsafe {
+            ffi::xdo_clear_active_modifiers(self.xdo.as_ptr(), self.id, mods.ptr, mods.len)
+        };
+
+        match res {
+            XDO_SUCCESS => Ok(()),
+            XDO_ERROR => Err(Error::Failed("clear_active_modifiers")),
+            _ => unreachable!()
+        }
+    }
 }
 
 
@@ -192,5 +248,14 @@ mod tests {
         let xdo = Xdo::new().unwrap();
         let window = xdo.get_active_window().unwrap();
         window.send_keysequence("Return", None).unwrap();
+    }
+
+    #[test]
+    fn modifiers() {
+        let xdo = Xdo::new().unwrap();
+        let window = xdo.get_active_window().unwrap();
+        let mods = xdo.get_active_modifiers().expect("get_active_modifiers");
+        window.clear_active_modifiers(&mods).expect("clear_active_modifiers");
+        window.set_active_modifiers(&mods).expect("set_active_modifiers");
     }
 }
